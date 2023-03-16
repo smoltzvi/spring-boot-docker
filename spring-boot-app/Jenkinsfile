@@ -1,6 +1,82 @@
-FROM openjdk:11
-VOLUME /tmp
-EXPOSE 8080
-ARG JAR_FILE=target/spring-boot-docker.jar
-ADD ${JAR_FILE} app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+pipeline {
+  environment {
+    PROJECT = "sandbox-io-289003"
+    APP_NAME = "kimo-app"
+    FE_SVC_NAME = "${APP_NAME}-frontend"
+    CLUSTER = "jenkins-cd"
+    CLUSTER_ZONE = "us-east4-a"
+    IMAGE_TAG = "gcr.io/${PROJECT}/${APP_NAME}:${env.BRANCH_NAME}.${env.BUILD_NUMBER}"
+    JENKINS_CRED = "${PROJECT}"
+  }
+
+  agent {
+    kubernetes {
+      label 'build-deploy-agent'
+      defaultContainer 'jnlp'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+labels:
+  component: ci
+spec:
+  # Use service account that can deploy to all namespaces
+  serviceAccountName: cd-jenkins
+  containers:
+  - name:  maven
+    image:  maven
+    imagePullPolicy: IfNotPresent
+    command:
+    - cat
+    tty: true
+  - name: kubectl
+    image: gcr.io/cloud-builders/kubectl
+    imagePullPolicy: IfNotPresent
+    command:
+    - cat
+    tty: true
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:v1.6.0-debug
+    imagePullPolicy: Always
+    command:
+    - sleep
+    args:
+    - 99d
+"""
+}
+  }
+  stages {
+    stage('Compilation') {
+       steps {
+        container('maven') {
+         dir("spring-boot-app") {
+          sh "mvn clean install -DskipTests"
+          }
+        }
+      }
+    }
+    stage('Build and push image with Google Container Registry') {
+      steps {
+        container('kaniko') {
+          dir("spring-boot-app") {
+            // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
+            // The equivilant to docker build, tag and push
+           sh "/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --insecure --skip-tls-verify --cache=true --destination=${IMAGE_TAG}"
+         }
+        }
+      }
+    }
+    stage('Deploy to kubernetes') {
+      steps {
+        container('kubectl') {
+          dir("spring-boot-app") {
+            // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
+            // The equivilant to docker build, tag and push
+           sh "ls"
+           sh "kubectl apply -f deployment.yaml"
+         }
+        }
+      }
+    }
+  }
+}
