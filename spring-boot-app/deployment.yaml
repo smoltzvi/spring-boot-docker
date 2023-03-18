@@ -19,6 +19,6 @@ spec:
       containers:
       - name: kimo-springboot-app
 
-        image: gcr.io/sandbox-io-289003/kimo-app:master.1
+        image: gcr.io/sandbox-io-289003/kimo-app:master.6
         ports:
         - containerPort: 8080
