@@ -18,7 +18,12 @@ spec:
     spec:
       containers:
       - name: kimo-springboot-app
-
         image: gcr.io/sandbox-io-289003/kimo-app:master.6
+        env:
+          - name: YOUR_NAME
+            valueFrom:
+              configMapKeyRef: 
+              name: my-configmap
+              key: YOUR_NAME
         ports:
         - containerPort: 8080
