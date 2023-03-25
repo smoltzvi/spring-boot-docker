@@ -11,12 +11,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/hello")
 public class SpringBootAppApplication {
 
+	@value("${your.name}")
+	String YOUR_NAME;
+
 	public static void main(String[] args) {
 		SpringApplication.run(SpringBootAppApplication.class, args);
 	}
 
 	@GetMapping()
 	public String getGreeting(){
-		return "Hello" YOUR_NAME;
+		return "Hello" + YOUR_NAME;
 	}
 }
