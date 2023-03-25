@@ -1,5 +1,6 @@
 package com.example.dockerize.springbootapp;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SpringBootAppApplication {
 
 	@Value("${YOUR_NAME}")
-	String YOUR_NAME;
+	private String yourname;
 
 	public static void main(String[] args) {
 		SpringApplication.run(SpringBootAppApplication.class, args);
@@ -20,6 +21,6 @@ public class SpringBootAppApplication {
 
 	@GetMapping()
 	public String getGreeting(){
-		return "Hello" + YOUR_NAME;
+		return "Hello" + yourname;
 	}
 }
