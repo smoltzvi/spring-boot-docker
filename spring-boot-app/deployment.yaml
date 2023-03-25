@@ -22,7 +22,8 @@ spec:
         env:
           - name: YOUR_NAME
             valueFrom:
-            configMapKeyRef: configmap
-            key: YOUR_NAME
+             configMapKeyRef: 
+              name: configmap
+              key: YOUR_NAME
         ports:
         - containerPort: 8080
