@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/hello")
 public class SpringBootAppApplication {
 
-	@value("${your.name}")
+	@Value("${YOUR_NAME}")
 	String YOUR_NAME;
 
 	public static void main(String[] args) {
