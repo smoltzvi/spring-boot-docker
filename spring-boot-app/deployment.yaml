@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: kimo-springboot-app
-        image: gcr.io/sandbox-io-289003/kimo-app:master.6
+        image: gcr.io/sandbox-io-289003/kimo-app:master.8
         env:
           - name: YOUR_NAME
             valueFrom:
