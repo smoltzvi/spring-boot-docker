@@ -1,29 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kimo-springboot-app
+  name: {{ .Values.app.labels }}
   labels:
-    app: kimo-springboot-app
+    app: {{ .Values.app.labels }}
 spec:
-  replicas: 3
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: kimo-springboot-app
-
+      app: {{ .Values.app.labels }}
   template:
     metadata:
       labels:
-        app: kimo-springboot-app
-  
+        app: {{ .Values.app.labels }}
     spec:
       containers:
-      - name: kimo-springboot-app
-        image: gcr.io/sandbox-io-289003/kimo-app:master.8
-        env:
-          - name: YOUR_NAME
-            valueFrom:
-             configMapKeyRef: 
-              name: configmap
-              key: YOUR_NAME
+      - name: {{ .Values.app.labels }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         ports:
-        - containerPort: 8080
+        - containerPort: {{ .Values.service.port }}
+        env:
+        - name: YOUR_NAME
+          valueFrom:
+            configMapKeyRef: 
+              name: {{ .Values.app.name }}
+              key: YOUR_NAME
