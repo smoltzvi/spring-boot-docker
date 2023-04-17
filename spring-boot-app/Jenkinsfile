@@ -72,7 +72,7 @@ spec:
           dir("spring-boot-app") {
             // No access to docker deamon so kaniko is the best option to build docker within kubernetes jenkins agent
             // The equivilant to docker build, tag and push
-           sh "helm template  kimo ./kimo-spring-chart/ --set image.tag=${env.BRANCH_NAME}.${env.BUILD_NUMBER} | kubectl apply -f - "
+           sh "helm template  kimo ./kimo-helm-chart/ --set image.tag=${env.BRANCH_NAME}.${env.BUILD_NUMBER} | kubectl apply -f - "
          }
         }
       }
