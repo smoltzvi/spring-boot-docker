@@ -7,6 +7,7 @@ pipeline {
     CLUSTER_ZONE = "us-east4-a"
     IMAGE_TAG = "gcr.io/${PROJECT}/${APP_NAME}:${env.BRANCH_NAME}.${env.BUILD_NUMBER}"
     JENKINS_CRED = "${PROJECT}"
+    REPO = "smoltzvi/spring-boot-docker"
   }
 
   agent {
@@ -31,6 +32,12 @@ spec:
     tty: true
   - name: kubectl
     image: dtzar/helm-kubectl:3.11
+    imagePullPolicy: IfNotPresent
+    command:
+    - cat
+    tty: true
+  - name: git
+    image: jlrigau/maven-git
     imagePullPolicy: IfNotPresent
     command:
     - cat
@@ -76,6 +83,41 @@ spec:
          }
         }
       }
+    }
+
+    stage('Release') {
+      steps {
+        container('git') {
+        withCredentials([string(credentialsId: 'kimo-text', variable: 'TOKEN')]) {
+          sh '''#!/bin/bash
+            git config --global user.name "smoltzvi"
+            git config --global user.email "shakpotter@codit.tech"
+            git config --global user.password "$TOKEN"
+            git config --global --add safe.directory '*'
+            LAST_LOG=$(git log --format='%H' --max-count=1 origin/master)
+            echo "LAST_LOG:$LAST_LOG"
+            LAST_MERGE=$(git log --format='%H' --merges --max-count=1 origin/master)
+            echo "LAST_MERGE:$LAST_MERGE"
+            LAST_MSG=$(git log --format='%s' --max-count=1 origin/master)
+            echo "LAST_MSG:$LAST_MSG"
+            VERSION=$(echo $LAST_MSG | grep --only-matching 'v\\?[0-9]\\+\\.[0-9]\\+\\(\\.[0-9]\\+\\)\\?')
+            echo "VERSION:$VERSION"
+            
+            if [[ $LAST_LOG == $LAST_MERGE && -n $VERSION ]]
+            then
+                DATA='{
+                    "tag_name": "'$VERSION'",
+                    "target_commitish": "master",
+                    "name": "'$VERSION'",
+                    "body": "'$LAST_MSG'",
+                    "draft": false,
+                    "prerelease": false
+                  }'
+                curl --header "Accept: application/vnd.github+json" --header "Authorization: Bearer $TOKEN" --data "$DATA" "https://api.github.com/repos/$REPO/releases"
+             fi
+              '''
+            }
+        }
     }
   }
 }
